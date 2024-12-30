@@ -1,9 +1,8 @@
-import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity } from 'react-native';
 import ContainerTitle from '@/components/welcome/ContainerTitle';
 import { ButtonLink } from '@/components/welcome/Link';
-import Icon from '@/assets/images/Icon.png';
 import { Link } from 'expo-router';
-import React from 'react';
+import { Image } from '@/components/welcome/Image';
 
 const { width } = Dimensions.get("window");
 
@@ -12,10 +11,8 @@ export default function Welcome() {
         <View style={styles.container}>
             {/* Header del container */}
             <ContainerTitle />
-            <Image
-                source={Icon}
-                style={styles.icon}
-            />
+            {/* Componente Imagen rotando */}
+            <Image />
             {/* Button para el login */}
             <ButtonLink text="¿Ya tenes cuenta?" link={'/login'} />
             {/* Button de Login */}
@@ -57,5 +54,6 @@ const styles = StyleSheet.create({
         width: 150,
         height: 150,
         marginBottom: 10,
+        marginLeft: -30,
     },
 });

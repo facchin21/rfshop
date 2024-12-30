@@ -1,12 +1,14 @@
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { AntDesign } from '@expo/vector-icons'
+import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons'
 import React, { useRef } from 'react'
+import { Colors } from '@/constants/Colors';
+import { Google } from '@/assets/SVG/Google';
 
 export default function LoginComponent() {
     const inputRef = useRef(null);
 
     const cleanInput = () => {
-        console.log('INPUT',inputRef);
+        console.log('INPUT', inputRef);
     }
 
     return (
@@ -21,7 +23,7 @@ export default function LoginComponent() {
                     placeholder="jaime@gmail.com"
                     placeholderTextColor="#999"
                 />
-                <AntDesign name="closecircle" size={20} color="#999"
+                <AntDesign name="closecircleo" size={20} color="#999"
                     onPress={cleanInput} />
             </View>
 
@@ -39,11 +41,12 @@ export default function LoginComponent() {
 
             {/* Botones adicionales */}
             <TouchableOpacity style={styles.secondaryButton}>
+                <MaterialCommunityIcons name="email " size={24} color='black' />
                 <Text style={styles.secondaryButtonText}>Continue with Email</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.secondaryButton, styles.googleButton]}>
-                <AntDesign name="google" size={20} color="#000" />
+            <TouchableOpacity style={styles.secondaryButton}>
+                <Google />
                 <Text style={styles.secondaryButtonText}>Continue with Google</Text>
             </TouchableOpacity>
         </>
@@ -51,7 +54,6 @@ export default function LoginComponent() {
 }
 
 const styles = StyleSheet.create({
-
     title: {
         fontFamily: "Poppins",
         fontSize: 22,
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        height: 40,
+        height: 45,
         fontSize: 16,
         color: "#000",
     },
@@ -96,19 +98,22 @@ const styles = StyleSheet.create({
     line: {
         flex: 1,
         height: 1,
-        backgroundColor: "#ccc",
+        backgroundColor: "black",
     },
     orText: {
-        marginHorizontal: 10,
-        color: "#999",
         fontSize: 14,
+        fontWeight: 'bold',
+        marginHorizontal: 10,
+        color: "black",
     },
     secondaryButton: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "#fff",
+        backgroundColor: "#eee",
         borderRadius: 10,
+        borderWidth: 2,
+        borderColor: 'black',
         paddingVertical: 10,
         paddingHorizontal: 20,
         width: "100%",
@@ -123,10 +128,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "500",
         marginLeft: 10,
-        color: "#000",
-    },
-    googleButton: {
-        flexDirection: "row",
-        justifyContent: "flex-start",
+        color: Colors.light.detail,
     },
 });
