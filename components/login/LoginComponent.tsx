@@ -1,14 +1,31 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons'
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Colors } from '@/constants/Colors';
 import { Google } from '@/assets/SVG/Google';
+import { router } from 'expo-router';
 
 export default function LoginComponent() {
-    const inputRef = useRef(null);
+    const [email, setEmail] = useState('');
+    const inputRef = useRef<TextInput>(null);
 
     const cleanInput = () => {
-        console.log('INPUT', inputRef);
+        setEmail("");
+        if (inputRef.current) {
+            inputRef.current.clear();
+        }
+    }
+    const isValidEmail = () => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex para validar email
+        return emailRegex.test(email);
+    }
+
+    const toggleSubmit = () => {
+        if (isValidEmail()) {
+            router.push('/register')
+        } else {
+            Alert.alert('Error', 'Por favor ingresar un email correcto!');
+        }
     }
 
     return (
@@ -18,8 +35,11 @@ export default function LoginComponent() {
             {/* Input de correo */}
             <View style={styles.inputContainer}>
                 <TextInput
+                    value={email}
                     ref={inputRef}
                     style={styles.input}
+                    onChangeText={setEmail}
+                    keyboardType='email-address'
                     placeholder="jaime@gmail.com"
                     placeholderTextColor="#999"
                 />
@@ -28,7 +48,8 @@ export default function LoginComponent() {
             </View>
 
             {/* Botón Continuar */}
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button}
+                onPress={toggleSubmit}>
                 <Text style={styles.buttonText}>Continue</Text>
             </TouchableOpacity>
 
@@ -41,7 +62,7 @@ export default function LoginComponent() {
 
             {/* Botones adicionales */}
             <TouchableOpacity style={styles.secondaryButton}>
-                <MaterialCommunityIcons name="email " size={24} color='black' />
+                <MaterialCommunityIcons name="email" size={24} color='black' />
                 <Text style={styles.secondaryButtonText}>Continue with Email</Text>
             </TouchableOpacity>
 
@@ -59,6 +80,7 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: "600",
         marginBottom: 25,
+        marginTop: 15,
     },
     inputContainer: {
         flexDirection: "row",
