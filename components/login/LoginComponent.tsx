@@ -22,7 +22,10 @@ export default function LoginComponent() {
 
     const toggleSubmit = () => {
         if (isValidEmail()) {
-            router.push('/register')
+            router.push({
+                pathname: '/singin',
+                params: { email: email }
+            })
         } else {
             Alert.alert('Error', 'Por favor ingresar un email correcto!');
         }
