@@ -21,8 +21,9 @@ export default function login() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
-        justifyContent: "center",
+        marginTop : 35,
         alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: Colors.light.background,
     },
 });
