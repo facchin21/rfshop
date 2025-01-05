@@ -3,7 +3,7 @@ import ContainerTitle from "@/components/welcome/ContainerTitle";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Modal } from "@/components/Modal";
 import { useState } from "react";
-import { useGlobalSearchParams } from "expo-router";
+import { Link, useGlobalSearchParams } from "expo-router";
 
 export default function singin() {
     const params = useGlobalSearchParams();
@@ -33,7 +33,9 @@ export default function singin() {
                     <Text style={styles.textButton}>Ingresar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity>
-                    <Text style={styles.forgot}>Recuperar contraseña</Text>
+                    <Link href={'/recover'}>
+                        <Text style={styles.forgot}>Recuperar contraseña</Text>
+                    </Link>
                 </TouchableOpacity>
             </Modal>
         </View>
@@ -88,8 +90,8 @@ const styles = StyleSheet.create({
     },
     forgot: {
         fontWeight: '300',
-        marginTop : 12,
-        borderBottomWidth : 1,
-        borderBottomColor : 'gray',
+        marginTop: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: 'gray',
     }
 })

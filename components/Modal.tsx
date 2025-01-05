@@ -18,6 +18,7 @@ export const Modal = ({ children }: ModalProps) => {
 const styles = StyleSheet.create({
     modal: {
         width: width,
+        minHeight: "60%",
         padding: 20,
         borderTopRightRadius: 20,
         borderTopLeftRadius: 20,
