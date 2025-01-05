@@ -1,11 +1,17 @@
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import ContainerTitle from "@/components/welcome/ContainerTitle";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import { router } from 'expo-router';
-import ContainerTitle from "@/components/welcome/ContainerTitle";
 
-export default function selectrol() {
+interface RoleCardProps {
+    title: string;
+    icon: string;
+    IconLibrary: any;
+    role: string;
+}
 
+const RoleCard = ({ title, icon, IconLibrary, role }: RoleCardProps) => {
     const navigateToRegister = (role: string) => {
         if (role) {
             router.push({
@@ -17,23 +23,27 @@ export default function selectrol() {
         }
     }
     return (
+        <TouchableOpacity onPress={() => navigateToRegister(role)}>
+            <View style={styles.card}>
+                <IconLibrary name={icon} size={50} color="black" />
+                <Text style={styles.title}>{title}</Text>
+            </View>
+        </TouchableOpacity>
+    )
+}
+
+export default function selectrol() {
+
+    return (
         <View style={styles.container}>
-            <ContainerTitle/>
-            <View style={{marginVertical: 10}}>
+            <ContainerTitle />
+            <View style={{ marginVertical: 10 }}>
                 <Text>Elegir el tipo de cuenta</Text>
             </View>
-            <TouchableOpacity onPress={() => navigateToRegister("user")}>
-                <View style={styles.card}>
-                    <FontAwesome5 name="user-alt" size={50} color="black" />
-                    <Text style={styles.title}>Usuario</Text>
-                </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigateToRegister("barber")}>
-                <View style={styles.card}>
-                    <Fontisto name="scissors" size={50} color="black" />
-                    <Text style={styles.title}>Barbero</Text>
-                </View>
-            </TouchableOpacity>
+
+            <RoleCard title={'Usuario'} icon='user-alt' IconLibrary={FontAwesome5} role="user" />
+            <RoleCard title={'Barbero'} icon='scissors' IconLibrary={Fontisto} role="barber" />
+
         </View>
     )
 }
