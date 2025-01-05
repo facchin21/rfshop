@@ -1,14 +1,15 @@
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import { router } from 'expo-router';
 
 export default function selectrol() {
-    const toggleSubmit = (type: String) => {
-        if (type) {
+
+    const navigateToRegister = (role: string) => {
+        if (role) {
             router.push({
                 pathname: '/register',
-                params: { rol: type }
+                params: { role }
             })
 
         } else {
@@ -17,13 +18,13 @@ export default function selectrol() {
     }
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={() => toggleSubmit('user')}>
+            <TouchableOpacity onPress={() => navigateToRegister("user")}>
                 <View style={styles.card}>
                     <FontAwesome5 name="user-alt" size={50} color="black" />
                     <Text style={styles.title}>Usuario</Text>
                 </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => toggleSubmit('barber')}>
+            <TouchableOpacity onPress={() => navigateToRegister("barber")}>
                 <View style={styles.card}>
                     <Fontisto name="scissors" size={50} color="black" />
                     <Text style={styles.title}>Barbero</Text>

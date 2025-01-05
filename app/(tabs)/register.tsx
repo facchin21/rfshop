@@ -1,10 +1,14 @@
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import ContainerTitle from "@/components/welcome/ContainerTitle";
+import { useGlobalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { Modal } from "@/components/Modal";
 import { useState } from "react";
 
+
 export default function register() {
+    const { role } = useGlobalSearchParams();
+
     const [email, setEmail] = useState('')
     const [name, setName] = useState('')
     const [lastName, setLastName] = useState('')
@@ -15,6 +19,7 @@ export default function register() {
     return (
         <ScrollView style={styles.container}>
             <ContainerTitle />
+            <Text>Cuenta de tipo : {role}</Text>
             <Modal>
                 <Text style={styles.title}>Crea tu cuenta</Text>
                 {/* Correo */}
