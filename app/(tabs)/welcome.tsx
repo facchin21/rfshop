@@ -24,7 +24,7 @@ export default function Welcome() {
                 </Pressable>
             </TouchableOpacity>
             {/* Button para crear cuenta */}
-            <ButtonLink text="Crear cuenta" link={'/register'} />
+            <ButtonLink text="Crear cuenta" link={'/selectrol'} />
         </View>
     );
 }
