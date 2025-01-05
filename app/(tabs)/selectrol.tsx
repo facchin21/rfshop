@@ -12,7 +12,6 @@ export default function selectrol() {
                 pathname: '/register',
                 params: { role }
             })
-
         } else {
             Alert.alert("Por favor seleccionar un Rol, para poder registrarse.")
         }
