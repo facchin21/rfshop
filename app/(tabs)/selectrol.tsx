@@ -2,6 +2,7 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import { router } from 'expo-router';
+import ContainerTitle from "@/components/welcome/ContainerTitle";
 
 export default function selectrol() {
 
@@ -18,6 +19,10 @@ export default function selectrol() {
     }
     return (
         <View style={styles.container}>
+            <ContainerTitle/>
+            <View style={{marginVertical: 10}}>
+                <Text>Elegir el tipo de cuenta</Text>
+            </View>
             <TouchableOpacity onPress={() => navigateToRegister("user")}>
                 <View style={styles.card}>
                     <FontAwesome5 name="user-alt" size={50} color="black" />
