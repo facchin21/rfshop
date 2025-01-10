@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import ContainerTitle from "@/components/welcome/ContainerTitle";
 import { useGlobalSearchParams } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
@@ -89,6 +89,9 @@ export default function register() {
                         <AntDesign name="closecircleo" size={24} color="gray" />
                     </View>
                 </View>
+                <TouchableOpacity style={styles.button}>
+                    <Text style={styles.textButton}>Crear Cuenta</Text>
+                </TouchableOpacity>
             </Modal>
         </ScrollView>
     )
@@ -126,5 +129,19 @@ const styles = StyleSheet.create({
         height: 45,
         fontSize: 16,
         color: "#000",
+    },
+    button: {
+        width: '100%',
+        paddingVertical: 7,
+        marginBottom: 12,
+        marginTop: 5,
+        borderRadius: 12,
+        backgroundColor: 'black',
+    },
+    textButton: {
+        fontSize: 18,
+        fontWeight: 600,
+        textAlign: "center",
+        color: "white"
     },
 })

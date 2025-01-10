@@ -25,6 +25,7 @@ export default function Welcome() {
             </TouchableOpacity>
             {/* Button para crear cuenta */}
             <ButtonLink text="Crear cuenta" link={'/selectrol'} />
+            <ButtonLink text="Probar pantalla de inicio app" link={'/index_app'} />
         </View>
     );
 }

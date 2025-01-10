@@ -4,7 +4,8 @@ import { router } from 'expo-router';
 
 
 export default function HomeScreen() {
-  const { displayedText } = useText("Barber");
+  const title: string = 'Barber'
+  const { displayedText } = useText(title);
 
   setTimeout(() => {
     router.push("/welcome");
