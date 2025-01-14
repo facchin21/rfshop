@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity } from 'react-native';
 import ContainerTitle from '@/components/welcome/ContainerTitle';
 import { ButtonLink } from '@/components/welcome/Link';
-import { Image } from '@/components/welcome/Image';
+// import { Image } from '@/components/welcome/Image';
 import { Link } from 'expo-router';
 
 const { width } = Dimensions.get("window");
