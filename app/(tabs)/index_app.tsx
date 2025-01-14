@@ -4,6 +4,7 @@ import { NavBar } from "@/components/NavBar";
 import { Header } from "@/components/Header";
 import { Image } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { Faro } from "@/assets/SVG/Faro";
 
 const { width } = Dimensions.get('window');
 

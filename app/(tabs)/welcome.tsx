@@ -12,7 +12,8 @@ export default function Welcome() {
             {/* Header del container */}
             <ContainerTitle />
             {/* Componente Imagen rotando */}
-            <Image />
+            <Text style={{fontSize: 100}}>💈</Text>
+            {/* <Image /> */}
             {/* Button para el login */}
             <ButtonLink text="¿Ya tenes cuenta?" link={'/login'} />
             {/* Button de Login */}
