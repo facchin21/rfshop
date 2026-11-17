@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity } from 
 import ContainerTitle from '@/components/welcome/ContainerTitle';
 import { ButtonLink } from '@/components/welcome/Link';
 // import { Image } from '@/components/welcome/Image';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 
 const { width } = Dimensions.get("window");
 
@@ -14,6 +14,13 @@ export default function Welcome() {
             {/* Componente Imagen rotando */}
             <Text style={{fontSize: 100}}>💈</Text>
             {/* <Image /> */}
+            <TouchableOpacity
+                style={styles.button}
+                onPress={() => router.push('/explore')}
+                accessibilityRole="button"
+            >
+                <Text style={styles.textButton}>Explorar barberías</Text>
+            </TouchableOpacity>
             {/* Button para el login */}
             <ButtonLink text="¿Ya tenes cuenta?" link={'/login'} />
             {/* Button de Login */}
@@ -26,7 +33,7 @@ export default function Welcome() {
             </TouchableOpacity>
             {/* Button para crear cuenta */}
             <ButtonLink text="Crear cuenta" link={'/selectrol'} />
-            <ButtonLink text="Probar pantalla de inicio app" link={'/index_app'} />
+            <ButtonLink text="Ver mis reservas" link={'/index_app'} />
         </View>
     );
 }

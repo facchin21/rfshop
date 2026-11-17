@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { useText } from '@/hooks/useText';
 import { router } from 'expo-router';
@@ -7,9 +8,12 @@ export default function HomeScreen() {
   const title: string = 'Barber'
   const { displayedText } = useText(title);
 
-  setTimeout(() => {
-    router.push("/welcome");
-  }, 5000)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.replace('/welcome');
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{displayedText}</Text>
