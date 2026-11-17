@@ -4,10 +4,12 @@ import org.example.rfshop.User.Infrastructure.Model.User;
 import org.example.rfshop.User.domain.Dto.Request.CreateUserDto;
 import org.example.rfshop.User.domain.Dto.Response.UserResponseDto;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
+    @Mapping(target = "password", ignore = true)
     UserResponseDto toDto(User user);
     User toEntity(CreateUserDto createUserDto);
 }

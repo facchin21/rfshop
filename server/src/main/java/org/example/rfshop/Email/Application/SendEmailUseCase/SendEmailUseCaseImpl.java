@@ -24,6 +24,9 @@ public class SendEmailUseCaseImpl implements SendEmailUseCase {
 
     @Override
     public boolean execute(Email email) throws MessagingException {
+        if (emailConfig.getHost() == null || emailConfig.getHost().isBlank()) {
+            return true;
+        }
         Message message = new MimeMessage(emailSession);
         message.setFrom(new InternetAddress(emailConfig.getUser()));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email.getTo()));

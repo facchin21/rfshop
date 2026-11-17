@@ -14,10 +14,10 @@ public class DetectImageUseCaseImpl implements DetectImageUseCase {
     private WebClient webClient;
     private final double percentageLimit = 0.5;
 
-    @Value("${API_USER_IA_IMAGE}")
+    @Value("${API_USER_IA_IMAGE:}")
     private String API_USER_IA_IMAGE;
 
-    @Value("${API_SECRET_IA_IMAGE}")
+    @Value("${API_SECRET_IA_IMAGE:}")
     private String API_SECRET_IA_IMAGE;
 
     @PostConstruct

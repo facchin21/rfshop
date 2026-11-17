@@ -1,6 +1,7 @@
 package org.example.rfshop.Auth.Application.LoginUseCase;
 
 import org.example.rfshop.Auth.Domain.Dto.Response.LoginResponseDto;
+import org.example.rfshop.Auth.Infrastructure.Exception.InvalidCredentials;
 import org.example.rfshop.Auth.Infrastructure.Security.Jwt.TokenProvider;
 import org.example.rfshop.Auth.Domain.Dto.Request.LoginDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,7 @@ public class LoginUseCaseImpl implements LoginUseCase {
             String token = tokenProvider.createToken(authentication);
             return LoginResponseDto.builder().token(token).createdAt(new Date()).build();
         } catch (BadCredentialsException e) {
-            throw new RuntimeException("Invalid credentials", e);
+            throw new InvalidCredentials();
         } catch (Exception e) {
             throw new RuntimeException("Login failed", e);
         }

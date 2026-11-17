@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Component
 public class TokenProvider {
 
-    @Value("${JWT_SECRET}")
+    @Value("${JWT_SECRET:bG9jYWwtcmZzaG9wLWRldi1zZWNyZXQta2V5LTMyYiE=}")
     private String secret;
     private static final String AUTHORITIES_KEY = "auth";
     private SecretKey key;

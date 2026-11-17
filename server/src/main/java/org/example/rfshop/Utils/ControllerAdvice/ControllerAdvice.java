@@ -4,6 +4,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.persistence.EntityNotFoundException;
 import org.apache.coyote.BadRequestException;
+import org.example.rfshop.Auth.Infrastructure.Exception.InvalidCredentials;
 import org.example.rfshop.BarberShop.Infrastructure.Exception.InvalidRole;
 import org.example.rfshop.Booking.Infrastructure.Exception.BookingAlreadyReserved;
 import org.example.rfshop.Cloudinary.infrastructure.Config.Exception.FailToDeleteImage;
@@ -28,6 +29,15 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ControllerAdvice {
+
+    @ExceptionHandler(InvalidCredentials.class)
+    public ResponseEntity<ErrorDto> handleInvalidCredentials(InvalidCredentials e) {
+        return buildErrorResponse(
+                e.getMessage(),
+                ErrorCodes.INVALID_CREDENTIALS,
+                HttpStatus.UNAUTHORIZED
+        );
+    }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorDto> handleRuntimeException(RuntimeException e) {

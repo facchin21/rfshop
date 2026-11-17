@@ -1,5 +1,6 @@
 package org.example.rfshop.User.domain.Dto.Response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ public class UserResponseDto {
     private String email;
     private String name;
     private String lastName;
+    @JsonIgnore
     private String password;
     private Role role;
 }

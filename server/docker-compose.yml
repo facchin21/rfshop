@@ -15,13 +15,13 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-rfshop}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-rfshop}
+      POSTGRES_DB: ${DB_NAME:-rfshop}
     volumes:
       - db_rfshop_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}"]
+      test: ["CMD", "pg_isready", "-U", "${DB_USER:-rfshop}", "-d", "${DB_NAME:-rfshop}"]
       interval: 10s
       retries: 5
       start_period: 30s

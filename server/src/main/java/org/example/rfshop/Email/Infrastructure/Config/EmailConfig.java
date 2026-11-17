@@ -14,13 +14,13 @@ import java.util.Properties;
 @Data
 public class EmailConfig {
 
-    @Value("${EMAIL_HOST}")
+    @Value("${EMAIL_HOST:}")
     private  String  host;
 
-    @Value("${EMAIL_USER}")
+    @Value("${EMAIL_USER:}")
     private String user;
 
-    @Value("${EMAIL_PASSWORD}")
+    @Value("${EMAIL_PASSWORD:}")
     private String password;
 
 
