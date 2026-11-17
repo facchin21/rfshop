@@ -30,7 +30,12 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# Java
+*.class
+server/target/
 
 # typescript
 *.tsbuildinfo

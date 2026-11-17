@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: rfshop
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/rfshop}
+    username: ${DB_USER:rfshop}
+    password: ${DB_PASSWORD:rfshop}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: true
+  config:
+    import: optional:file:.env[.properties]
+  logging:
+    level:
+      org.springframework: INFO
+      org.example.rfshop: INFO

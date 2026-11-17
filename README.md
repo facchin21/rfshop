@@ -1,50 +1,45 @@
-# Welcome to your Expo app 👋
+# RF Shop
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Monorepo de la app de barberías y su API.
 
-## Get started
+- `apps/mobile` es la app Expo.
+- `server` es el backend Spring Boot.
 
-1. Install dependencies
+La app habla con el API en local. El deploy queda para después.
 
-   ```bash
-   npm install
-   ```
+## Cuentas de prueba
 
-2. Start the app
+El API las crea la primera vez que arranca, si la base está vacía.
 
-   ```bash
-    npx expo start
-   ```
+- Cliente: `ana@barber.test` / `usuario123`
+- Barbero: `martin@barber.test` / `barber123`
 
-In the output, you'll find options to open the app in a
+El barbero ya tiene el local Barber Rivadavia, en Rivadavia 2322, con turnos de 30 minutos. Ana tiene uno reservado.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Backend
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Hace falta Java 21 y Postgres en `localhost:5432`, base `rfshop`, usuario y clave `rfshop`. Con esos valores el API arranca sin copiar el `.env`. Cloudinary, el mail y la detección de imágenes quedan vacíos: reservar un turno no los necesita.
 
 ```bash
-npm run reset-project
+cd server
+./mvnw spring-boot:run
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+El API escucha en el puerto 8080. Registro, login, roles, el listado de barberías y los turnos del mes son públicos. El resto pide `Authorization: Bearer`.
 
-## Learn more
+Para Docker, primero generá el jar. Compose ya trae los valores de Postgres:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+cd server
+./mvnw -DskipTests package
+docker compose up --build
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## App
 
-## Join the community
+```bash
+npm install --prefix apps/mobile
+npm start
+```
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+En la web usa `http://localhost:8080`. En el teléfono usa el host de Expo y el puerto 8080. Si el API está en otra URL, definí `EXPO_PUBLIC_API_URL`.
