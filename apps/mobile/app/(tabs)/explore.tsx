@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AntDesign } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Header } from '@/components/Header';
 import { NavBar } from '@/components/NavBar';
@@ -57,18 +58,21 @@ export default function Explore() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Header />
       <Text style={styles.lead}>Encontrá tu barbería</Text>
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        placeholder="Ciudad, calle o barbería"
-        placeholderTextColor="#8A8A8A"
-        style={styles.search}
-        accessibilityLabel="Buscar barberías"
-        testID="explore-search"
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-      <View style={styles.filters}>
+      <View style={styles.searchBox}>
+        <AntDesign name="search1" size={18} color="#6E6E6E" />
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Ciudad, calle o barbería"
+          placeholderTextColor="#8A8A8A"
+          style={styles.search}
+          accessibilityLabel="Buscar barberías"
+          testID="explore-search"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+      </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
         <FilterChip label="Todas" active={!city && !savedOnly} onPress={() => { setCity(''); setSavedOnly(false); }} />
         <FilterChip label="Guardadas" active={savedOnly} onPress={() => setSavedOnly((current) => !current)} />
         {cities.map((area) => (
@@ -82,18 +86,21 @@ export default function Explore() {
             }}
           />
         ))}
-      </View>
+      </ScrollView>
       {loading ? <ActivityIndicator style={styles.status} color="black" /> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <FlatList
         data={visible}
         keyExtractor={(shop) => String(shop.id)}
-        contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 96 + insets.bottom }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 96 + insets.bottom, paddingTop: 4 }}
         ListEmptyComponent={
           loading ? null : (
-            <Text style={styles.empty}>
-              {savedOnly ? 'Todavía no guardaste barberías.' : 'No hay barberías con esa búsqueda.'}
-            </Text>
+            <View style={styles.emptyBox}>
+              <Text style={styles.emptyTitle}>{savedOnly ? 'Nada guardado' : 'Sin resultados'}</Text>
+              <Text style={styles.empty}>
+                {savedOnly ? 'Marcá el corazón de un local para verlo acá.' : 'Probá con otra ciudad o con el nombre del local.'}
+              </Text>
+            </View>
           )
         }
         renderItem={({ item }) => (
@@ -125,24 +132,27 @@ function FilterChip({ label, active, onPress }: { label: string; active: boolean
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'white' },
-  lead: { paddingHorizontal: 22, marginBottom: 12, fontSize: 22, fontWeight: '700' },
-  search: {
-    marginHorizontal: 18,
+  lead: { paddingHorizontal: 20, marginBottom: 12, fontSize: 26, fontWeight: '700' },
+  searchBox: {
+    marginHorizontal: 20,
     marginBottom: 12,
-    paddingHorizontal: 16,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#D6D6D6',
-    backgroundColor: '#F7F7F7',
-    fontSize: 16,
+    paddingHorizontal: 14,
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: '#F3F3F3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 18, marginBottom: 12 },
-  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderColor: '#D0D0D0' },
-  chipActive: { backgroundColor: 'black', borderColor: 'black' },
-  chipText: { fontSize: 13, fontWeight: '600' },
+  search: { flex: 1, fontSize: 16, height: 50 },
+  filters: { paddingHorizontal: 20, gap: 8, paddingBottom: 12 },
+  chip: { paddingHorizontal: 14, height: 36, borderRadius: 18, backgroundColor: '#F3F3F3', justifyContent: 'center' },
+  chipActive: { backgroundColor: '#111' },
+  chipText: { fontSize: 13, fontWeight: '700' },
   chipTextActive: { color: 'white' },
   status: { marginVertical: 12 },
-  error: { paddingHorizontal: 22, marginBottom: 8, color: '#8A2B2B' },
-  empty: { paddingTop: 24, fontSize: 16, color: '#555' },
+  error: { paddingHorizontal: 20, marginBottom: 8, color: '#8A2B2B' },
+  emptyBox: { paddingTop: 28 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: 6 },
+  empty: { fontSize: 15, color: '#555', lineHeight: 21 },
 });

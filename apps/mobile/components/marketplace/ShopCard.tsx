@@ -42,19 +42,21 @@ export const ShopCard = memo(function ShopCard({ shop, saved, onPress, onToggleS
           <Text style={styles.name}>{shop.name}</Text>
           <Text style={styles.meta}>
             {shop.street} {shop.streetNumber}
-            {shop.phone ? ` · ${shop.phone}` : ''}
           </Text>
-          <Text style={styles.chairs}>{shop.chair} {shop.chair === 1 ? 'sillón' : 'sillones'}</Text>
+          <View style={styles.footer}>
+            <Text style={styles.chairs}>{shop.chair} {shop.chair === 1 ? 'sillón' : 'sillones'}</Text>
+            <Text style={styles.cta}>Ver turnos</Text>
+          </View>
         </View>
       </Pressable>
       <Pressable
         onPress={onToggleSaved}
-        hitSlop={10}
+        hitSlop={8}
         style={styles.heart}
         accessibilityRole="button"
         accessibilityLabel={saved ? `Quitar ${shop.name} de guardadas` : `Guardar ${shop.name}`}
       >
-        <AntDesign name={saved ? 'heart' : 'hearto'} size={20} color="white" />
+        <AntDesign name={saved ? 'heart' : 'hearto'} size={18} color="white" />
       </Pressable>
     </View>
   );
@@ -62,45 +64,39 @@ export const ShopCard = memo(function ShopCard({ shop, saved, onPress, onToggleS
 
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 18,
-    borderRadius: 16,
+    marginBottom: 16,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#F6F6F6',
   },
   hero: {
-    height: 120,
+    height: 132,
     alignItems: 'center',
     justifyContent: 'center',
   },
   monogram: {
     color: 'white',
-    fontSize: 36,
+    fontSize: 40,
     fontWeight: '700',
     letterSpacing: 2,
   },
-  city: {
-    color: 'white',
-    marginTop: 4,
-  },
-  body: {
-    padding: 14,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  meta: {
-    marginTop: 4,
-    color: '#444',
-  },
-  chairs: {
-    marginTop: 6,
-    color: '#666',
-  },
+  city: { color: 'rgba(255,255,255,0.82)', marginTop: 2, fontSize: 13 },
+  body: { paddingHorizontal: 14, paddingTop: 12, paddingBottom: 14 },
+  name: { fontSize: 18, fontWeight: '700' },
+  meta: { marginTop: 4, color: '#444', fontSize: 14 },
+  footer: { marginTop: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  chairs: { color: '#666', fontSize: 13 },
+  cta: { fontWeight: '700', fontSize: 13 },
   heart: {
     position: 'absolute',
     top: 12,
     right: 12,
     zIndex: 2,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.38)',
   },
 });
