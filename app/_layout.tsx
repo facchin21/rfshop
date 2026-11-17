@@ -6,7 +6,9 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Colors';
+import { FavoritesProvider } from '@/context/Favorites';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -28,10 +30,14 @@ export default function RootLayout() {
   }
 
   return (
-    <View style={styles.container}>
-      <Slot />
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <FavoritesProvider>
+        <View style={styles.container}>
+          <Slot />
+          <StatusBar style="auto" />
+        </View>
+      </FavoritesProvider>
+    </SafeAreaProvider>
   );
 }
 
