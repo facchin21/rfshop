@@ -19,5 +19,7 @@ public class BookingResponseDto {
     private LocalDateTime bookingEnd;
     private Boolean reserved;
     private Boolean state;
+    private Long barberShopId;
+    private String barberShopName;
     private UserNameDto user;
 }

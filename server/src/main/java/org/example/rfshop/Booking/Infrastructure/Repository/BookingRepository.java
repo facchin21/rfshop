@@ -18,5 +18,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
+    @Query("SELECT b FROM Booking b WHERE b.user.email = :email ORDER BY b.bookingStart")
+    List<Booking> findByUserEmail(@Param("email") String email);
 }
 

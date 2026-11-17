@@ -17,4 +17,5 @@ public class BarberShopResponseDto {
     private Integer streetNumber;
     private String phone;
     private Integer chair;
+    private Long ownerId;
 }
