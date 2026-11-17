@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { Button } from '@/components/ui/Button';
+import { TextField } from '@/components/ui/TextField';
 import { useSession } from '@/context/Session';
 
 export default function LoginComponent() {
@@ -29,88 +30,22 @@ export default function LoginComponent() {
   };
 
   return (
-    <>
+    <View>
       <Text style={styles.title}>Iniciar sesión</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          value={email}
-          style={styles.input}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder="ana@barber.test"
-          placeholderTextColor="#999"
-          accessibilityLabel="Correo"
-        />
-        <AntDesign name="closecircleo" size={20} color="#999" onPress={() => setEmail('')} />
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          value={password}
-          style={styles.input}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholder="Contraseña"
-          placeholderTextColor="#999"
-          accessibilityLabel="Contraseña"
-        />
-      </View>
+      <Text style={styles.lead}>Entrá para reservar o para publicar tu agenda.</Text>
+      <TextField label="Correo" value={email} onChangeText={setEmail} placeholder="ana@barber.test" keyboardType="email-address" />
+      <TextField label="Contraseña" value={password} onChangeText={setPassword} placeholder="Contraseña" secure />
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <TouchableOpacity style={styles.button} onPress={() => void submit()} disabled={busy} accessibilityRole="button">
-        {busy ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Ingresar</Text>}
-      </TouchableOpacity>
+      <Button label="Ingresar" onPress={() => void submit()} busy={busy} />
       <Text style={styles.hint}>Cliente: ana@barber.test / usuario123</Text>
       <Text style={styles.hint}>Barbero: martin@barber.test / barber123</Text>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    fontFamily: 'Poppins',
-    fontSize: 22,
-    fontWeight: '600',
-    marginBottom: 25,
-    marginTop: 15,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    marginBottom: 16,
-    borderWidth: 2,
-    borderColor: 'black',
-  },
-  input: {
-    flex: 1,
-    height: 45,
-    fontSize: 16,
-    color: '#000',
-  },
-  button: {
-    backgroundColor: '#000',
-    paddingVertical: 15,
-    width: '100%',
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  error: {
-    color: '#8A2B2B',
-    marginBottom: 12,
-  },
-  hint: {
-    color: '#666',
-    fontSize: 13,
-    marginBottom: 4,
-  },
+  title: { fontSize: 28, fontWeight: '700', marginBottom: 6 },
+  lead: { color: '#444', marginBottom: 20, lineHeight: 20 },
+  error: { color: '#8A2B2B', marginBottom: 12 },
+  hint: { color: '#666', fontSize: 13, marginTop: 8 },
 });

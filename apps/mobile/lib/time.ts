@@ -90,6 +90,14 @@ export function formatAppointment(iso: string, time: string) {
   return `${label} · ${time}`;
 }
 
+export function dateBadge(iso: string, now = new Date()) {
+  const chip = formatDayChip(iso, now);
+  return {
+    ...chip,
+    month: MONTHS[Number(iso.slice(5, 7)) - 1].slice(0, 3),
+  };
+}
+
 export function formatDayChip(iso: string, now = new Date()) {
   if (iso === todayISO(now)) {
     return { label: 'Hoy', day: iso.slice(8, 10) };

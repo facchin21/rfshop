@@ -1,13 +1,17 @@
-import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Header } from '@/components/Header';
 import { NavBar } from '@/components/NavBar';
+import { Button } from '@/components/ui/Button';
+import { TextField } from '@/components/ui/TextField';
 import { useSession } from '@/context/Session';
 import { createShop, fetchMonthSlots, fetchMyBookings, fetchMyShops, publishSlots } from '@/lib/api';
-import { buenosAiresParts, formatStamp, isPastStamp, plusMinutes, slotStamp, todayISO } from '@/lib/time';
+import { buenosAiresParts, dateBadge, formatStamp, isPastStamp, plusMinutes, slotStamp, stampParts, todayISO } from '@/lib/time';
 import type { Shop, Slot } from '@/lib/types';
+
+const QUICK_TIMES = ['11:00', '12:00', '17:00', '18:00', '18:30'];
 
 export default function Reservations() {
   const router = useRouter();
@@ -54,59 +58,62 @@ export default function Reservations() {
 
   const upcoming = bookings.filter((booking) => !isPastStamp(booking.bookingStart));
   const previous = bookings.filter((booking) => isPastStamp(booking.bookingStart)).reverse();
+  const isBarber = session.user?.role?.name === 'BARBER';
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Header />
-      <ScrollView contentContainerStyle={{ paddingBottom: 96 + insets.bottom, paddingHorizontal: 18 }}>
-        <Text style={styles.lead}>{session.user?.role?.name === 'BARBER' ? 'Mi local' : 'Próximas reservas'}</Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: 108 + insets.bottom, paddingHorizontal: 20 }}>
+        <Text style={styles.lead}>{isBarber ? 'Mi local' : 'Tus turnos'}</Text>
         {!session.ready || loading ? <ActivityIndicator color="black" style={styles.loader} /> : null}
         {session.ready && !session.user ? (
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>Entrá para ver tus turnos</Text>
-            <Pressable style={styles.button} onPress={() => router.push('/login')} accessibilityRole="button">
-              <Text style={styles.buttonText}>Iniciar sesión</Text>
-            </Pressable>
+            <Text style={styles.emptyText}>Las reservas quedan en tu cuenta.</Text>
+            <Button label="Iniciar sesión" onPress={() => router.push('/login')} />
           </View>
         ) : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {notice ? <Text style={styles.notice}>{notice}</Text> : null}
-        {session.user?.role?.name === 'BARBER' && !loading ? (
+        {isBarber && !loading ? (
           <BarberAgenda
             shop={shops[0] ?? null}
             slots={slots}
             onCreated={() => {
-              setNotice('Listo.');
+              setNotice('Listo, ya está en la agenda.');
               void load();
             }}
             onError={setError}
           />
         ) : null}
-        {session.user && session.user.role?.name !== 'BARBER' && !loading && upcoming.length === 0 ? (
+        {session.user && !isBarber && !loading && upcoming.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>Todavía no tenés turnos</Text>
             <Text style={styles.emptyText}>Explorá barberías y reservá un horario publicado.</Text>
-            <Pressable style={styles.button} onPress={() => router.push('/explore')} accessibilityRole="button">
-              <Text style={styles.buttonText}>Explorar barberías</Text>
-            </Pressable>
+            <Button label="Explorar barberías" onPress={() => router.push('/explore')} />
           </View>
         ) : null}
-        {session.user?.role?.name !== 'BARBER'
-          ? upcoming.map((booking) => <BookingCard key={booking.id} booking={booking} />)
-          : null}
-        {previous.length > 0 && session.user?.role?.name !== 'BARBER' ? <Text style={styles.previousTitle}>Anteriores</Text> : null}
-        {session.user?.role?.name !== 'BARBER' ? previous.map((booking) => <BookingCard key={booking.id} booking={booking} />) : null}
+        {!isBarber ? upcoming.map((booking) => <BookingCard key={booking.id} booking={booking} />) : null}
+        {previous.length > 0 && !isBarber ? <Text style={styles.section}>Anteriores</Text> : null}
+        {!isBarber ? previous.map((booking) => <BookingCard key={booking.id} booking={booking} muted />) : null}
       </ScrollView>
       <NavBar />
     </SafeAreaView>
   );
 }
 
-function BookingCard({ booking }: { booking: Slot }) {
+function BookingCard({ booking, muted }: { booking: Slot; muted?: boolean }) {
+  const badge = dateBadge(stampParts(booking.bookingStart).date);
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{booking.barberShopName ?? 'Barbería'}</Text>
-      <Text style={styles.cardMeta}>{formatStamp(booking.bookingStart)}</Text>
+    <View style={[styles.card, muted && styles.cardMuted]}>
+      <View style={styles.badge}>
+        <Text style={styles.badgeDay}>{badge.day}</Text>
+        <Text style={styles.badgeMonth}>{badge.month}</Text>
+      </View>
+      <View style={styles.cardBody}>
+        <Text style={styles.cardTitle}>{booking.barberShopName ?? 'Barbería'}</Text>
+        <Text style={styles.cardMeta}>{formatStamp(booking.bookingStart)}</Text>
+      </View>
     </View>
   );
 }
@@ -131,6 +138,15 @@ function BarberAgenda({
   const [date, setDate] = useState(todayISO());
   const [time, setTime] = useState('17:00');
   const [busy, setBusy] = useState(false);
+  const grouped = useMemo(() => {
+    const ordered = [...slots].sort((left, right) => left.bookingStart.localeCompare(right.bookingStart));
+    const map = new Map<string, Slot[]>();
+    ordered.forEach((slot) => {
+      const key = stampParts(slot.bookingStart).date;
+      map.set(key, [...(map.get(key) ?? []), slot]);
+    });
+    return [...map.entries()];
+  }, [slots]);
 
   const create = async () => {
     const chairs = Number(chair);
@@ -141,7 +157,14 @@ function BarberAgenda({
     }
     setBusy(true);
     try {
-      await createShop({ name: name.trim(), city: city.trim(), street: street.trim(), streetNumber: number, phone: phone.trim() || undefined, chair: chairs });
+      await createShop({
+        name: name.trim(),
+        city: city.trim(),
+        street: street.trim(),
+        streetNumber: number,
+        phone: phone.trim() || undefined,
+        chair: chairs,
+      });
       onCreated();
     } catch (caught) {
       onError(caught instanceof Error ? caught.message : 'No pudimos crear el local.');
@@ -171,71 +194,125 @@ function BarberAgenda({
     return (
       <View>
         <Text style={styles.emptyText}>Publicá tu barbería para abrir la agenda.</Text>
-        <Field label="Nombre" value={name} onChangeText={setName} />
-        <Field label="Ciudad" value={city} onChangeText={setCity} />
-        <Field label="Calle" value={street} onChangeText={setStreet} />
-        <Field label="Altura" value={streetNumber} onChangeText={setStreetNumber} />
-        <Field label="Teléfono" value={phone} onChangeText={setPhone} />
-        <Field label="Sillones" value={chair} onChangeText={setChair} />
-        <Pressable style={styles.button} onPress={() => void create()} disabled={busy} accessibilityRole="button">
-          <Text style={styles.buttonText}>{busy ? 'Creando...' : 'Crear local'}</Text>
-        </Pressable>
+        <TextField label="Nombre" value={name} onChangeText={setName} autoCapitalize="words" />
+        <TextField label="Ciudad" value={city} onChangeText={setCity} autoCapitalize="words" />
+        <TextField label="Calle" value={street} onChangeText={setStreet} autoCapitalize="words" />
+        <TextField label="Altura" value={streetNumber} onChangeText={setStreetNumber} keyboardType="number-pad" />
+        <TextField label="Teléfono" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        <TextField label="Sillones" value={chair} onChangeText={setChair} keyboardType="number-pad" />
+        <Button label="Crear local" onPress={() => void create()} busy={busy} />
       </View>
     );
   }
 
   return (
     <View>
-      <Text style={styles.cardTitle}>{shop.name}</Text>
-      <Text style={styles.cardMeta}>
-        {shop.street} {shop.streetNumber}, {shop.city}
-      </Text>
-      <Text style={styles.section}>Publicar un turno de 30 minutos</Text>
-      <Field label="Fecha" value={date} onChangeText={setDate} />
-      <Field label="Hora" value={time} onChangeText={setTime} />
-      <Pressable style={styles.button} onPress={() => void publish()} disabled={busy} accessibilityRole="button" testID="publish-slot">
-        <Text style={styles.buttonText}>{busy ? 'Publicando...' : 'Publicar turno'}</Text>
-      </Pressable>
+      <View style={styles.shopCard}>
+        <Text style={styles.cardTitle}>{shop.name}</Text>
+        <Text style={styles.cardMeta}>
+          {shop.street} {shop.streetNumber}, {shop.city}
+        </Text>
+      </View>
+      <Text style={styles.section}>Publicar 30 minutos</Text>
+      <TextField label="Fecha" value={date} onChangeText={setDate} placeholder="AAAA-MM-DD" />
+      <Text style={styles.fieldLabel}>Hora</Text>
+      <View style={styles.times}>
+        {QUICK_TIMES.map((option) => (
+          <Pressable
+            key={option}
+            onPress={() => setTime(option)}
+            style={[styles.time, time === option && styles.timeActive]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: time === option }}
+          >
+            <Text style={[styles.timeText, time === option && styles.timeTextActive]}>{option}</Text>
+          </Pressable>
+        ))}
+      </View>
+      <TextField label="Otra hora" value={time} onChangeText={setTime} placeholder="HH:mm" />
+      <Button label="Publicar turno" onPress={() => void publish()} busy={busy} testID="publish-slot" />
       <Text style={styles.section}>Agenda del mes</Text>
-      {slots.length === 0 ? <Text style={styles.emptyText}>Todavía no hay horarios este mes.</Text> : null}
-      {slots.map((slot) => (
-        <View key={slot.id} style={styles.card}>
-          <Text style={styles.cardTitle}>{formatStamp(slot.bookingStart)}</Text>
-          <Text style={styles.cardMeta}>
-            {slot.reserved ? `Reservado${slot.user ? ` · ${slot.user.name} ${slot.user.lastName}` : ''}` : 'Libre'}
-          </Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function Field({ label, value, onChangeText }: { label: string; value: string; onChangeText: (value: string) => void }) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput value={value} onChangeText={onChangeText} style={styles.input} accessibilityLabel={label} autoCapitalize="none" />
+      {grouped.length === 0 ? <Text style={styles.emptyText}>Todavía no hay horarios este mes.</Text> : null}
+      {grouped.map(([iso, daySlots]) => {
+        const badge = dateBadge(iso);
+        return (
+          <View key={iso} style={styles.dayGroup}>
+            <Text style={styles.dayTitle}>
+              {badge.label} {badge.day} {badge.month}
+            </Text>
+            {daySlots.map((slot) => (
+              <View key={slot.id} style={styles.slotRow}>
+                <Text style={styles.slotTime}>{stampParts(slot.bookingStart).time}</Text>
+                <Text style={[styles.pill, slot.reserved && styles.pillTaken]}>
+                  {slot.reserved ? slot.user ? `${slot.user.name} ${slot.user.lastName}` : 'Reservado' : 'Libre'}
+                </Text>
+              </View>
+            ))}
+          </View>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: 'white' },
-  lead: { fontSize: 22, fontWeight: '700', marginBottom: 16 },
+  lead: { fontSize: 26, fontWeight: '700', marginBottom: 16 },
   loader: { marginVertical: 16 },
-  empty: { paddingVertical: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  emptyText: { color: '#444', marginBottom: 12 },
-  button: { backgroundColor: 'black', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, alignSelf: 'flex-start', marginBottom: 16 },
-  buttonText: { color: 'white', fontWeight: '700' },
+  empty: { paddingVertical: 8, gap: 8 },
+  emptyTitle: { fontSize: 20, fontWeight: '700' },
+  emptyText: { color: '#444', marginBottom: 8, lineHeight: 20 },
   error: { color: '#8A2B2B', marginBottom: 12 },
-  notice: { color: '#1E3A2F', marginBottom: 12 },
-  card: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  notice: { color: '#1E3A2F', marginBottom: 12, fontWeight: '600' },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    marginBottom: 10,
+    borderRadius: 16,
+    backgroundColor: '#F6F6F6',
+  },
+  cardMuted: { opacity: 0.6 },
+  badge: {
+    width: 54,
+    height: 54,
+    borderRadius: 14,
+    backgroundColor: '#111',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeDay: { color: 'white', fontSize: 18, fontWeight: '700' },
+  badgeMonth: { color: 'white', fontSize: 11, textTransform: 'uppercase' },
+  cardBody: { flex: 1 },
   cardTitle: { fontSize: 16, fontWeight: '700' },
   cardMeta: { marginTop: 4, color: '#444' },
-  previousTitle: { marginTop: 22, marginBottom: 8, fontSize: 16, fontWeight: '700' },
-  section: { marginTop: 18, marginBottom: 8, fontSize: 16, fontWeight: '700' },
-  field: { marginBottom: 10 },
-  fieldLabel: { marginBottom: 4, color: '#333' },
-  input: { borderWidth: 1, borderColor: '#D0D0D0', borderRadius: 10, paddingHorizontal: 12, height: 44 },
+  section: { marginTop: 22, marginBottom: 10, fontSize: 18, fontWeight: '700' },
+  shopCard: { padding: 14, borderRadius: 16, backgroundColor: '#F6F6F6', marginBottom: 8 },
+  fieldLabel: { marginBottom: 6, fontSize: 13, fontWeight: '600', color: '#333' },
+  times: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  time: {
+    minWidth: 72,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F3F3F3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timeActive: { backgroundColor: '#111' },
+  timeText: { fontWeight: '700' },
+  timeTextActive: { color: 'white' },
+  dayGroup: { marginBottom: 14 },
+  dayTitle: { fontWeight: '700', marginBottom: 8, textTransform: 'capitalize' },
+  slotRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+  },
+  slotTime: { fontSize: 16, fontWeight: '700' },
+  pill: { color: '#1E3A2F', fontWeight: '700' },
+  pillTaken: { color: '#333' },
 });

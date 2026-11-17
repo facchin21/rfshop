@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import ContainerTitle from '@/components/welcome/ContainerTitle';
-import { useGlobalSearchParams, router } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AntDesign } from '@expo/vector-icons';
-import { Modal } from '@/components/Modal';
+import { router, useGlobalSearchParams } from 'expo-router';
+import { Button } from '@/components/ui/Button';
+import { TextField } from '@/components/ui/TextField';
 import { fetchRoles, registerAccount } from '@/lib/api';
 import { useSession } from '@/context/Session';
 
@@ -69,111 +70,40 @@ export default function Register() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <ContainerTitle />
-      <Text style={styles.role}>Cuenta de tipo: {wanted === 'BARBER' ? 'barbero' : 'cliente'}</Text>
-      <Modal>
-        <Text style={styles.title}>Crea tu cuenta</Text>
-        <Field label="Correo" value={email} onChangeText={setEmail} placeholder="ana@correo.com" />
-        <Field label="Nombre" value={name} onChangeText={setName} placeholder="Ana" />
-        <Field label="Apellido" value={lastName} onChangeText={setLastName} placeholder="Pérez" />
-        <Field label="Contraseña" value={password} onChangeText={setPassword} placeholder="******" secure />
-        <Field label="Confirmar contraseña" value={secondPassword} onChangeText={setSecondPassword} placeholder="******" secure />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <TouchableOpacity style={styles.button} onPress={() => void submit()} disabled={busy} accessibilityRole="button">
-          {busy ? <ActivityIndicator color="white" /> : <Text style={styles.textButton}>Crear cuenta</Text>}
-        </TouchableOpacity>
-      </Modal>
-    </ScrollView>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  secure,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (value: string) => void;
-  placeholder: string;
-  secure?: boolean;
-}) {
-  return (
-    <View>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputContainer}>
-        <TextInput
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="#999"
-          style={styles.input}
-          secureTextEntry={secure}
-          autoCapitalize="none"
-          accessibilityLabel={label}
-        />
-        <AntDesign name="closecircleo" size={20} color="gray" onPress={() => onChangeText('')} />
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <View style={styles.top}>
+        <Pressable onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Volver">
+          <AntDesign name="arrowleft" size={20} color="black" />
+        </Pressable>
       </View>
-    </View>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Text style={styles.title}>Creá tu cuenta</Text>
+        <Text style={styles.lead}>{wanted === 'BARBER' ? 'Vas a publicar tu local y los horarios.' : 'Vas a reservar turnos en las barberías.'}</Text>
+        <TextField label="Correo" value={email} onChangeText={setEmail} placeholder="ana@correo.com" keyboardType="email-address" />
+        <TextField label="Nombre" value={name} onChangeText={setName} placeholder="Ana" autoCapitalize="words" />
+        <TextField label="Apellido" value={lastName} onChangeText={setLastName} placeholder="Pérez" autoCapitalize="words" />
+        <TextField label="Contraseña" value={password} onChangeText={setPassword} secure />
+        <TextField label="Confirmar contraseña" value={secondPassword} onChangeText={setSecondPassword} secure />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Button label="Crear cuenta" onPress={() => void submit()} busy={busy} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginTop: 35,
-  },
-  role: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  title: {
-    fontFamily: 'Poppins',
-    fontSize: 22,
-    fontWeight: '600',
-    marginBottom: 25,
-    marginTop: 15,
-  },
-  label: {
-    fontSize: 15,
-    marginBottom: 5,
-  },
-  inputContainer: {
-    flexDirection: 'row',
+  safe: { flex: 1, backgroundColor: 'white' },
+  top: { paddingHorizontal: 16, paddingVertical: 8 },
+  back: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F3F3',
     alignItems: 'center',
-    width: '100%',
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: 'black',
+    justifyContent: 'center',
   },
-  input: {
-    flex: 1,
-    height: 45,
-    fontSize: 16,
-    color: '#000',
-  },
-  button: {
-    width: '100%',
-    paddingVertical: 12,
-    marginBottom: 12,
-    marginTop: 5,
-    borderRadius: 12,
-    backgroundColor: 'black',
-    alignItems: 'center',
-  },
-  textButton: {
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-    color: 'white',
-  },
-  error: {
-    color: '#8A2B2B',
-    marginBottom: 12,
-  },
+  content: { paddingHorizontal: 24, paddingBottom: 32 },
+  title: { fontSize: 28, fontWeight: '700' },
+  lead: { color: '#444', marginTop: 6, marginBottom: 20, lineHeight: 20 },
+  error: { color: '#8A2B2B', marginBottom: 12 },
 });

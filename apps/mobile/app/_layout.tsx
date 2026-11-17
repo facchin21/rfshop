@@ -34,9 +34,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <SessionProvider>
         <FavoritesProvider>
-          <View style={styles.container}>
-            <Slot />
-            <StatusBar style="auto" />
+          <View style={styles.canvas}>
+            <View style={styles.phone}>
+              <Slot />
+              <StatusBar style="auto" />
+            </View>
           </View>
         </FavoritesProvider>
       </SessionProvider>
@@ -45,9 +47,15 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  canvas: {
     flex: 1,
+    alignItems: 'center',
+    backgroundColor: '#D9D9D9',
+  },
+  phone: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 430,
     backgroundColor: Colors.light.background,
-    color: Colors.light.text,
-  }
+  },
 })
