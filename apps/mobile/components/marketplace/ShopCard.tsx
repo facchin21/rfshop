@@ -1,9 +1,22 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { formatARS } from '@/lib/money';
-import { priceFrom } from '@/lib/shops';
 import type { Shop } from '@/lib/types';
+
+const ACCENTS = ['#1C1C1C', '#3D2B1F', '#1E3A2F', '#243044', '#4A3728'];
+
+function accent(id: number) {
+  return ACCENTS[Math.abs(id) % ACCENTS.length];
+}
+
+function monogram(name: string) {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+}
 
 type Props = {
   shop: Shop;
@@ -18,24 +31,21 @@ export const ShopCard = memo(function ShopCard({ shop, saved, onPress, onToggleS
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={`${shop.name}, ${shop.neighborhood}`}
+        accessibilityLabel={`${shop.name}, ${shop.city}`}
         testID={`shop-card-${shop.id}`}
       >
-      <View style={[styles.hero, { backgroundColor: shop.accent }]}>
-        <Text style={styles.monogram}>{shop.monogram}</Text>
-        <Text style={styles.neighborhood}>{shop.neighborhood}</Text>
-      </View>
-      <View style={styles.body}>
-        <View style={styles.titleRow}>
-          <Text style={styles.name}>{shop.name}</Text>
-          <Text style={styles.rating}>★ {shop.rating.toFixed(2)}</Text>
+        <View style={[styles.hero, { backgroundColor: accent(shop.id) }]}>
+          <Text style={styles.monogram}>{monogram(shop.name)}</Text>
+          <Text style={styles.city}>{shop.city}</Text>
         </View>
-        <Text style={styles.meta}>
-          {shop.reviewCount} reseñas · {shop.address}
-        </Text>
-        <Text style={styles.tagline}>{shop.tagline}</Text>
-        <Text style={styles.price}>desde {formatARS(priceFrom(shop))}</Text>
-      </View>
+        <View style={styles.body}>
+          <Text style={styles.name}>{shop.name}</Text>
+          <Text style={styles.meta}>
+            {shop.street} {shop.streetNumber}
+            {shop.phone ? ` · ${shop.phone}` : ''}
+          </Text>
+          <Text style={styles.chairs}>{shop.chair} {shop.chair === 1 ? 'sillón' : 'sillones'}</Text>
+        </View>
       </Pressable>
       <Pressable
         onPress={onToggleSaved}
@@ -58,67 +68,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#F6F6F6',
   },
   hero: {
-    height: 148,
-    padding: 16,
-    justifyContent: 'flex-end',
-  },
-  monogram: {
-    position: 'absolute',
-    top: 18,
-    left: 16,
-    color: 'white',
-    fontSize: 42,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  neighborhood: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  heart: {
-    position: 'absolute',
-    zIndex: 2,
-    top: 14,
-    right: 14,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.28)',
+  },
+  monogram: {
+    color: 'white',
+    fontSize: 36,
+    fontWeight: '700',
+    letterSpacing: 2,
+  },
+  city: {
+    color: 'white',
+    marginTop: 4,
   },
   body: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
+    padding: 14,
   },
   name: {
-    flex: 1,
     fontSize: 18,
     fontWeight: '700',
   },
-  rating: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
   meta: {
     marginTop: 4,
-    color: '#5F5F5F',
-    fontSize: 13,
+    color: '#444',
   },
-  tagline: {
+  chairs: {
     marginTop: 6,
-    fontSize: 14,
+    color: '#666',
   },
-  price: {
-    marginTop: 8,
-    fontSize: 15,
-    fontWeight: '700',
+  heart: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 2,
   },
 });

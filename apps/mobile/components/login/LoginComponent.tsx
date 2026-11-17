@@ -1,158 +1,116 @@
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons'
-import React, { useRef, useState } from 'react'
-import { Colors } from '@/constants/Colors';
-import { Google } from '@/assets/SVG/Google';
+import React, { useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useSession } from '@/context/Session';
 
 export default function LoginComponent() {
-    const [email, setEmail] = useState('');
-    const inputRef = useRef<TextInput>(null);
+  const session = useSession();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
-    const cleanInput = () => {
-        setEmail("");
-        if (inputRef.current) {
-            inputRef.current.clear();
-        }
+  const submit = async () => {
+    setError('');
+    if (!email.includes('@') || password.length < 6) {
+      setError('Ingresá un correo y una contraseña de al menos 6 caracteres.');
+      return;
     }
-    const isValidEmail = () => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Regex para validar email
-        return emailRegex.test(email);
+    setBusy(true);
+    try {
+      const account = await session.login(email, password);
+      router.replace(account.role?.name === 'BARBER' ? '/index_app' : '/explore');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'No pudimos iniciar sesión.');
+    } finally {
+      setBusy(false);
     }
+  };
 
-    const toggleSubmit = () => {
-        if (isValidEmail()) {
-            router.push({
-                pathname: '/singin',
-                params: { email: email }
-            })
-        } else {
-            Alert.alert('Error', 'Por favor ingresar un email correcto!');
-        }
-    }
-
-    return (
-        <>
-            <Text style={styles.title}>Iniciar Sesion</Text>
-
-            {/* Input de correo */}
-            <View style={styles.inputContainer}>
-                <TextInput
-                    value={email}
-                    ref={inputRef}
-                    style={styles.input}
-                    onChangeText={setEmail}
-                    keyboardType='email-address'
-                    placeholder="jaime@gmail.com"
-                    placeholderTextColor="#999"
-                />
-                <AntDesign name="closecircleo" size={20} color="#999"
-                    onPress={cleanInput} />
-            </View>
-
-            {/* Botón Continuar */}
-            <TouchableOpacity style={styles.button}
-                onPress={toggleSubmit}>
-                <Text style={styles.buttonText}>Continue</Text>
-            </TouchableOpacity>
-
-            {/* Separador */}
-            <View style={styles.separator}>
-                <View style={styles.line} />
-                <Text style={styles.orText}>or</Text>
-                <View style={styles.line} />
-            </View>
-
-            {/* Botones adicionales */}
-            <TouchableOpacity style={styles.secondaryButton}>
-                <MaterialCommunityIcons name="email" size={24} color='black' />
-                <Text style={styles.secondaryButtonText}>Continue with Email</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.secondaryButton}>
-                <Google />
-                <Text style={styles.secondaryButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
-        </>
-    )
+  return (
+    <>
+      <Text style={styles.title}>Iniciar sesión</Text>
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={email}
+          style={styles.input}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="ana@barber.test"
+          placeholderTextColor="#999"
+          accessibilityLabel="Correo"
+        />
+        <AntDesign name="closecircleo" size={20} color="#999" onPress={() => setEmail('')} />
+      </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={password}
+          style={styles.input}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholder="Contraseña"
+          placeholderTextColor="#999"
+          accessibilityLabel="Contraseña"
+        />
+      </View>
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <TouchableOpacity style={styles.button} onPress={() => void submit()} disabled={busy} accessibilityRole="button">
+        {busy ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Ingresar</Text>}
+      </TouchableOpacity>
+      <Text style={styles.hint}>Cliente: ana@barber.test / usuario123</Text>
+      <Text style={styles.hint}>Barbero: martin@barber.test / barber123</Text>
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
-    title: {
-        fontFamily: "Poppins",
-        fontSize: 22,
-        fontWeight: "600",
-        marginBottom: 25,
-        marginTop: 15,
-    },
-    inputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        width: "100%",
-        paddingHorizontal: 10,
-        borderRadius: 10,
-        marginBottom: 20,
-        borderWidth: 2,
-        borderColor: 'black',
-        backgroundColor: 'none',
-    },
-    input: {
-        flex: 1,
-        height: 45,
-        fontSize: 16,
-        color: "#000",
-    },
-    button: {
-        backgroundColor: "#000",
-        paddingVertical: 15,
-        width: "100%",
-        borderRadius: 10,
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    buttonText: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    separator: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginVertical: 20,
-    },
-    line: {
-        flex: 1,
-        height: 1,
-        backgroundColor: "black",
-    },
-    orText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        marginHorizontal: 10,
-        color: "black",
-    },
-    secondaryButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#eee",
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: 'black',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        width: "100%",
-        marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 2,
-    },
-    secondaryButtonText: {
-        fontSize: 16,
-        fontWeight: "500",
-        marginLeft: 10,
-        color: Colors.light.detail,
-    },
+  title: {
+    fontFamily: 'Poppins',
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 25,
+    marginTop: 15,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'black',
+  },
+  input: {
+    flex: 1,
+    height: 45,
+    fontSize: 16,
+    color: '#000',
+  },
+  button: {
+    backgroundColor: '#000',
+    paddingVertical: 15,
+    width: '100%',
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  error: {
+    color: '#8A2B2B',
+    marginBottom: 12,
+  },
+  hint: {
+    color: '#666',
+    fontSize: 13,
+    marginBottom: 4,
+  },
 });

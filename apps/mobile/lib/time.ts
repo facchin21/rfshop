@@ -100,6 +100,32 @@ export function formatDayChip(iso: string, now = new Date()) {
   };
 }
 
+export function stampParts(stamp: string) {
+  const normalized = stamp.replace('T', ' ');
+  return { date: normalized.slice(0, 10), time: normalized.slice(11, 16) };
+}
+
+export function formatStamp(stamp: string) {
+  const parts = stampParts(stamp);
+  return formatAppointment(parts.date, parts.time);
+}
+
+export function isPastStamp(stamp: string, now = new Date()) {
+  const parts = stampParts(stamp);
+  return isPastSlot(parts.date, parts.time, now);
+}
+
+export function plusMinutes(iso: string, time: string, minutes: number) {
+  const total = toMinutes(time) + minutes;
+  const dayShift = Math.floor(total / (24 * 60));
+  const within = ((total % (24 * 60)) + 24 * 60) % (24 * 60);
+  return { date: addDays(iso, dayShift), time: fromMinutes(within) };
+}
+
+export function slotStamp(iso: string, time: string) {
+  return `${iso} ${time.length === 5 ? `${time}:00` : time}`;
+}
+
 export function upcomingDates(count: number, now = new Date()) {
   const today = todayISO(now);
   return Array.from({ length: count }, (_, index) => addDays(today, index));

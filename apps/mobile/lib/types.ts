@@ -1,85 +1,57 @@
-export type Service = {
-  id: string;
+export type Role = {
+  id: number;
   name: string;
-  durationMin: number;
-  price: number;
 };
 
-export type Barber = {
-  id: string;
+export type Account = {
+  id: number;
+  email: string;
   name: string;
-  specialty: string;
+  lastName: string;
+  role: Role | null;
 };
 
 export type Shop = {
-  id: string;
+  id: number;
   name: string;
-  neighborhood: string;
   city: string;
-  address: string;
-  rating: number;
-  reviewCount: number;
-  accent: string;
-  monogram: string;
-  tagline: string;
-  about: string;
-  openHour: number;
-  closeHour: number;
-  closedWeekdays: number[];
-  services: Service[];
-  barbers: Barber[];
+  street: string;
+  streetNumber: number;
+  phone: string | null;
+  chair: number;
+  ownerId: number | null;
 };
 
-export type BookingStatus = 'confirmed' | 'cancelled';
-
-export type Booking = {
-  id: string;
-  shopId: string;
-  serviceId: string;
-  barberId: string;
-  date: string;
-  time: string;
-  guestName: string;
-  status: BookingStatus;
-  createdAt: string;
+export type SlotUser = {
+  id: number;
+  name: string;
+  lastName: string;
 };
 
-export type BookingView = Booking & {
-  shopName: string;
-  address: string;
-  neighborhood: string;
-  serviceName: string;
-  barberName: string;
-  price: number;
-  durationMin: number;
+export type Slot = {
+  id: number;
+  bookingStart: string;
+  bookingEnd: string;
+  reserved: boolean;
+  state: boolean;
+  barberShopId: number | null;
+  barberShopName: string | null;
+  user: SlotUser | null;
 };
 
-export type TimeSlot = {
-  time: string;
-  barberIds: string[];
+export type ShopInput = {
+  name: string;
+  city: string;
+  street: string;
+  streetNumber: number;
+  phone?: string;
+  chair: number;
 };
 
-export type Availability = {
-  date: string;
-  closed: boolean;
-  slots: TimeSlot[];
-  reason: 'ok' | 'closed' | 'past' | 'full';
+export type RegisterInput = {
+  email: string;
+  name: string;
+  lastName: string;
+  password: string;
+  rolId: number;
 };
-
-export type ShopFilters = {
-  query?: string;
-  neighborhood?: string;
-};
-
-export type BookingInput = {
-  shopId?: string;
-  serviceId?: string;
-  barberId?: string;
-  date?: string;
-  time?: string;
-  guestName?: string;
-};
-
-export type BookingResult =
-  | { ok: true; booking: BookingView }
-  | { ok: false; status: number; error: string };

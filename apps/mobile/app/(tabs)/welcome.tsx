@@ -1,19 +1,18 @@
-import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import ContainerTitle from '@/components/welcome/ContainerTitle';
 import { ButtonLink } from '@/components/welcome/Link';
-// import { Image } from '@/components/welcome/Image';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
+import { useSession } from '@/context/Session';
 
 const { width } = Dimensions.get("window");
 
 export default function Welcome() {
+    const session = useSession();
     return (
         <View style={styles.container}>
-            {/* Header del container */}
             <ContainerTitle />
-            {/* Componente Imagen rotando */}
             <Text style={{fontSize: 100}}>💈</Text>
-            {/* <Image /> */}
+            {session.user ? <Text style={styles.hello}>Hola, {session.user.name}</Text> : null}
             <TouchableOpacity
                 style={styles.button}
                 onPress={() => router.push('/explore')}
@@ -21,17 +20,20 @@ export default function Welcome() {
             >
                 <Text style={styles.textButton}>Explorar barberías</Text>
             </TouchableOpacity>
-            {/* Button para el login */}
-            <ButtonLink text="¿Ya tenes cuenta?" link={'/login'} />
-            {/* Button de Login */}
-            <TouchableOpacity style={styles.button}>
-                <Pressable>
-                    <Link href='/login'>
-                        <Text style={styles.textButton}>Iniciar Sesion</Text>
-                    </Link>
-                </Pressable>
-            </TouchableOpacity>
-            {/* Button para crear cuenta */}
+            {session.user ? (
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => {
+                        session.logout();
+                        router.replace('/welcome');
+                    }}
+                    accessibilityRole="button"
+                >
+                    <Text style={styles.textButton}>Salir</Text>
+                </TouchableOpacity>
+            ) : (
+                <ButtonLink text="Iniciar sesión" link={'/login'} />
+            )}
             <ButtonLink text="Crear cuenta" link={'/selectrol'} />
             <ButtonLink text="Ver mis reservas" link={'/index_app'} />
         </View>
@@ -45,6 +47,10 @@ const styles = StyleSheet.create({
         fontFamily: "Poppins",
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    hello: {
+        marginBottom: 8,
+        fontSize: 16,
     },
     button: {
         width: '50%',

@@ -1,197 +1,241 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Header } from '@/components/Header';
 import { NavBar } from '@/components/NavBar';
-import { cancelReservation, fetchBookings } from '@/lib/api';
-import { formatARS } from '@/lib/money';
-import { formatAppointment, isPastSlot } from '@/lib/time';
-import type { BookingView } from '@/lib/types';
+import { useSession } from '@/context/Session';
+import { createShop, fetchMonthSlots, fetchMyBookings, fetchMyShops, publishSlots } from '@/lib/api';
+import { buenosAiresParts, formatStamp, isPastStamp, plusMinutes, slotStamp, todayISO } from '@/lib/time';
+import type { Shop, Slot } from '@/lib/types';
 
 export default function Reservations() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [bookings, setBookings] = useState<BookingView[]>([]);
+  const session = useSession();
+  const [bookings, setBookings] = useState<Slot[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
   const load = useCallback(async () => {
+    if (!session.user) {
+      setLoading(false);
+      return;
+    }
     setError('');
     try {
-      const response = await fetchBookings();
-      setBookings(response.bookings);
+      if (session.user.role?.name === 'BARBER') {
+        const mine = await fetchMyShops();
+        setShops(mine);
+        if (mine[0]) {
+          setSlots(await fetchMonthSlots(mine[0].id, buenosAiresParts(new Date()).month));
+        } else {
+          setSlots([]);
+        }
+      } else {
+        setBookings(await fetchMyBookings());
+      }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No pudimos cargar tus reservas.');
+      setError(caught instanceof Error ? caught.message : 'No pudimos cargar tu agenda.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [session.user]);
 
   useFocusEffect(
     useCallback(() => {
+      setLoading(true);
       void load();
     }, [load]),
   );
 
-  const upcoming = bookings.filter((booking) => !isPastSlot(booking.date, booking.time));
-  const previous = bookings.filter((booking) => isPastSlot(booking.date, booking.time)).reverse();
-
-  const cancel = (booking: BookingView) => {
-    Alert.alert('Cancelar turno', `${booking.shopName} · ${formatAppointment(booking.date, booking.time)}`, [
-      { text: 'Volver', style: 'cancel' },
-      {
-        text: 'Cancelar turno',
-        style: 'destructive',
-        onPress: () => {
-          void cancelReservation(booking.id)
-            .then(() => load())
-            .catch((caught: unknown) => {
-              setError(caught instanceof Error ? caught.message : 'No pudimos cancelar el turno.');
-            });
-        },
-      },
-    ]);
-  };
+  const upcoming = bookings.filter((booking) => !isPastStamp(booking.bookingStart));
+  const previous = bookings.filter((booking) => isPastStamp(booking.bookingStart)).reverse();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Header />
       <ScrollView contentContainerStyle={{ paddingBottom: 96 + insets.bottom, paddingHorizontal: 18 }}>
-        <Text style={styles.lead}>Próximas reservas</Text>
-        {loading ? <ActivityIndicator color="black" style={styles.loader} /> : null}
+        <Text style={styles.lead}>{session.user?.role?.name === 'BARBER' ? 'Mi local' : 'Próximas reservas'}</Text>
+        {!session.ready || loading ? <ActivityIndicator color="black" style={styles.loader} /> : null}
+        {session.ready && !session.user ? (
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>Entrá para ver tus turnos</Text>
+            <Pressable style={styles.button} onPress={() => router.push('/login')} accessibilityRole="button">
+              <Text style={styles.buttonText}>Iniciar sesión</Text>
+            </Pressable>
+          </View>
+        ) : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        {!loading && upcoming.length === 0 ? (
+        {notice ? <Text style={styles.notice}>{notice}</Text> : null}
+        {session.user?.role?.name === 'BARBER' && !loading ? (
+          <BarberAgenda
+            shop={shops[0] ?? null}
+            slots={slots}
+            onCreated={() => {
+              setNotice('Listo.');
+              void load();
+            }}
+            onError={setError}
+          />
+        ) : null}
+        {session.user && session.user.role?.name !== 'BARBER' && !loading && upcoming.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>Todavía no tenés turnos</Text>
-            <Text style={styles.emptyText}>Explorá barberías y reservá el horario que te quede bien.</Text>
-            <Pressable
-              style={styles.button}
-              onPress={() => router.push('/explore')}
-              accessibilityRole="button"
-            >
+            <Text style={styles.emptyText}>Explorá barberías y reservá un horario publicado.</Text>
+            <Pressable style={styles.button} onPress={() => router.push('/explore')} accessibilityRole="button">
               <Text style={styles.buttonText}>Explorar barberías</Text>
             </Pressable>
           </View>
         ) : null}
-        {upcoming.map((booking) => (
-          <BookingCard key={booking.id} booking={booking} onCancel={() => cancel(booking)} />
-        ))}
-        {previous.length > 0 ? <Text style={styles.previousTitle}>Anteriores</Text> : null}
-        {previous.map((booking) => (
-          <BookingCard key={booking.id} booking={booking} />
-        ))}
+        {session.user?.role?.name !== 'BARBER'
+          ? upcoming.map((booking) => <BookingCard key={booking.id} booking={booking} />)
+          : null}
+        {previous.length > 0 && session.user?.role?.name !== 'BARBER' ? <Text style={styles.previousTitle}>Anteriores</Text> : null}
+        {session.user?.role?.name !== 'BARBER' ? previous.map((booking) => <BookingCard key={booking.id} booking={booking} />) : null}
       </ScrollView>
       <NavBar />
     </SafeAreaView>
   );
 }
 
-function BookingCard({ booking, onCancel }: { booking: BookingView; onCancel?: () => void }) {
+function BookingCard({ booking }: { booking: Slot }) {
   return (
-    <View style={styles.card} testID={`booking-card-${booking.id}`}>
-      <Text style={styles.cardTitle}>{booking.shopName}</Text>
-      <Text style={styles.cardPlace}>
-        {booking.address} · {booking.neighborhood}
-      </Text>
-      <Text style={styles.cardWhen}>{formatAppointment(booking.date, booking.time)}</Text>
-      <Text style={styles.cardService}>
-        {booking.serviceName} con {booking.barberName}
-      </Text>
-      <Text style={styles.cardPrice}>
-        {formatARS(booking.price)} · {booking.guestName}
-      </Text>
-      {onCancel ? (
-        <Pressable onPress={onCancel} accessibilityRole="button" style={styles.cancel}>
-          <Text style={styles.cancelText}>Cancelar turno</Text>
+    <View style={styles.card}>
+      <Text style={styles.cardTitle}>{booking.barberShopName ?? 'Barbería'}</Text>
+      <Text style={styles.cardMeta}>{formatStamp(booking.bookingStart)}</Text>
+    </View>
+  );
+}
+
+function BarberAgenda({
+  shop,
+  slots,
+  onCreated,
+  onError,
+}: {
+  shop: Shop | null;
+  slots: Slot[];
+  onCreated: () => void;
+  onError: (message: string) => void;
+}) {
+  const [name, setName] = useState('');
+  const [city, setCity] = useState('Buenos Aires');
+  const [street, setStreet] = useState('');
+  const [streetNumber, setStreetNumber] = useState('');
+  const [phone, setPhone] = useState('');
+  const [chair, setChair] = useState('1');
+  const [date, setDate] = useState(todayISO());
+  const [time, setTime] = useState('17:00');
+  const [busy, setBusy] = useState(false);
+
+  const create = async () => {
+    const chairs = Number(chair);
+    const number = Number(streetNumber);
+    if (name.trim().length < 3 || !city.trim() || !street.trim() || !Number.isInteger(number) || !Number.isInteger(chairs)) {
+      onError('Completá el local con calle, altura y sillones.');
+      return;
+    }
+    setBusy(true);
+    try {
+      await createShop({ name: name.trim(), city: city.trim(), street: street.trim(), streetNumber: number, phone: phone.trim() || undefined, chair: chairs });
+      onCreated();
+    } catch (caught) {
+      onError(caught instanceof Error ? caught.message : 'No pudimos crear el local.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const publish = async () => {
+    if (!shop || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+      onError('Usá una fecha AAAA-MM-DD y una hora HH:mm.');
+      return;
+    }
+    const end = plusMinutes(date, time, 30);
+    setBusy(true);
+    try {
+      await publishSlots(shop.id, [{ bookingStart: slotStamp(date, time), bookingEnd: slotStamp(end.date, end.time) }]);
+      onCreated();
+    } catch (caught) {
+      onError(caught instanceof Error ? caught.message : 'No pudimos publicar el turno.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!shop) {
+    return (
+      <View>
+        <Text style={styles.emptyText}>Publicá tu barbería para abrir la agenda.</Text>
+        <Field label="Nombre" value={name} onChangeText={setName} />
+        <Field label="Ciudad" value={city} onChangeText={setCity} />
+        <Field label="Calle" value={street} onChangeText={setStreet} />
+        <Field label="Altura" value={streetNumber} onChangeText={setStreetNumber} />
+        <Field label="Teléfono" value={phone} onChangeText={setPhone} />
+        <Field label="Sillones" value={chair} onChangeText={setChair} />
+        <Pressable style={styles.button} onPress={() => void create()} disabled={busy} accessibilityRole="button">
+          <Text style={styles.buttonText}>{busy ? 'Creando...' : 'Crear local'}</Text>
         </Pressable>
-      ) : null}
+      </View>
+    );
+  }
+
+  return (
+    <View>
+      <Text style={styles.cardTitle}>{shop.name}</Text>
+      <Text style={styles.cardMeta}>
+        {shop.street} {shop.streetNumber}, {shop.city}
+      </Text>
+      <Text style={styles.section}>Publicar un turno de 30 minutos</Text>
+      <Field label="Fecha" value={date} onChangeText={setDate} />
+      <Field label="Hora" value={time} onChangeText={setTime} />
+      <Pressable style={styles.button} onPress={() => void publish()} disabled={busy} accessibilityRole="button" testID="publish-slot">
+        <Text style={styles.buttonText}>{busy ? 'Publicando...' : 'Publicar turno'}</Text>
+      </Pressable>
+      <Text style={styles.section}>Agenda del mes</Text>
+      {slots.length === 0 ? <Text style={styles.emptyText}>Todavía no hay horarios este mes.</Text> : null}
+      {slots.map((slot) => (
+        <View key={slot.id} style={styles.card}>
+          <Text style={styles.cardTitle}>{formatStamp(slot.bookingStart)}</Text>
+          <Text style={styles.cardMeta}>
+            {slot.reserved ? `Reservado${slot.user ? ` · ${slot.user.name} ${slot.user.lastName}` : ''}` : 'Libre'}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function Field({ label, value, onChangeText }: { label: string; value: string; onChangeText: (value: string) => void }) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput value={value} onChangeText={onChangeText} style={styles.input} accessibilityLabel={label} autoCapitalize="none" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: 'white',
-  },
-  lead: {
-    marginTop: 8,
-    marginBottom: 14,
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  loader: {
-    marginVertical: 16,
-  },
-  error: {
-    marginBottom: 10,
-    color: '#8A2B2B',
-  },
-  empty: {
-    padding: 18,
-    borderRadius: 16,
-    backgroundColor: '#F4F4F4',
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  emptyText: {
-    marginTop: 6,
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  button: {
-    alignSelf: 'flex-start',
-    marginTop: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: 'black',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '700',
-  },
-  card: {
-    marginBottom: 12,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: '#F4F4F4',
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  cardPlace: {
-    marginTop: 4,
-    color: '#555',
-  },
-  cardWhen: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  cardService: {
-    marginTop: 4,
-  },
-  cardPrice: {
-    marginTop: 4,
-    color: '#333',
-  },
-  cancel: {
-    alignSelf: 'flex-start',
-    marginTop: 12,
-  },
-  cancelText: {
-    fontWeight: '700',
-    textDecorationLine: 'underline',
-  },
-  previousTitle: {
-    marginTop: 12,
-    marginBottom: 10,
-    fontSize: 18,
-    fontWeight: '700',
-  },
+  safe: { flex: 1, backgroundColor: 'white' },
+  lead: { fontSize: 22, fontWeight: '700', marginBottom: 16 },
+  loader: { marginVertical: 16 },
+  empty: { paddingVertical: 12 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
+  emptyText: { color: '#444', marginBottom: 12 },
+  button: { backgroundColor: 'black', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, alignSelf: 'flex-start', marginBottom: 16 },
+  buttonText: { color: 'white', fontWeight: '700' },
+  error: { color: '#8A2B2B', marginBottom: 12 },
+  notice: { color: '#1E3A2F', marginBottom: 12 },
+  card: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  cardTitle: { fontSize: 16, fontWeight: '700' },
+  cardMeta: { marginTop: 4, color: '#444' },
+  previousTitle: { marginTop: 22, marginBottom: 8, fontSize: 16, fontWeight: '700' },
+  section: { marginTop: 18, marginBottom: 8, fontSize: 16, fontWeight: '700' },
+  field: { marginBottom: 10 },
+  fieldLabel: { marginBottom: 4, color: '#333' },
+  input: { borderWidth: 1, borderColor: '#D0D0D0', borderRadius: 10, paddingHorizontal: 12, height: 44 },
 });

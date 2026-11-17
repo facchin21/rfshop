@@ -6,7 +6,7 @@
     "web": "npm --prefix apps/mobile run web",
     "android": "npm --prefix apps/mobile run android",
     "ios": "npm --prefix apps/mobile run ios",
-    "test": "npm --prefix apps/mobile exec -- jest --watchAll=false",
+    "test": "cd apps/mobile && npx jest --watchAll=false",
     "lint": "npm --prefix apps/mobile run lint"
   }
 }
